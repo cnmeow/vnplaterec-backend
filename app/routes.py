@@ -1,4 +1,4 @@
-from flask import Blueprint, request, current_app as app, jsonify
+from flask import Blueprint, request, current_app as app, jsonify, send_from_directory
 import os
 from PIL import Image
 import cv2
@@ -10,14 +10,14 @@ main_bp = Blueprint('main', __name__)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-@main_bp.route('/', methods=['POST'])
+@main_bp.route('/predict', methods=['POST'])
 def predict():
-    if 'file' not in request.files:
+    if 'image' not in request.files:
         return jsonify({
             "error": "No file"
         })
     
-    file = request.files['file']
+    file = request.files['image']
     if file.filename == '':
         return jsonify({
             "error": "No selected file"
@@ -32,21 +32,23 @@ def predict():
         return jsonify({
             "error": "Not found user id"
         })
-    id_user = request.form['id_user']
     
+    yolo_lp_detect = app.yolo_LP_detect
+    yolo_license_plate = app.yolo_license_plate
+    id_user = request.form['id_user']
     filename = file.filename
     ext = filename.rsplit('.', 1)[1].lower()
-    upload_path = os.path.join(app.config['UPLOAD_FOLDER'], id_user + '_upload.jpg')
+    image_path = os.path.join(app.config['UPLOAD_FOLDER'], id_user + '.jpg')
 
     if ext in ['jpg', 'jpeg', 'png']:
-        file.save(upload_path)
+        file.save(image_path)
     else: 
         image = Image.open(file)
-        image.save(upload_path, format='JPEG')
+        image.save(image_path, format='JPEG')
 
-    img = cv2.imread(upload_path)
+    img = cv2.imread(image_path)
     start_time = time.time()
-    plates = yolo_LP_detect(img, size=640)
+    plates = yolo_lp_detect(img, size=640)
     list_plates = plates.pandas().xyxy[0].values.tolist()
     list_read_plates = set()
     lp = "unknown"
@@ -79,10 +81,13 @@ def predict():
     end_time = time.time()
     run_time = str(round(end_time - start_time, 2))
 
-    result_path = os.path.join(app.config['UPLOAD_FOLDER'], id_user + '_result.jpg')
-    cv2.imwrite(result_path, img)
+    cv2.imwrite(image_path, img)
     return jsonify({
-        "upload_path": upload_path,
-        "result_path": result_path,
+        "result_path": id_user + '.jpg',
+        "plate_text": lp,
         "run_time": run_time
     })
+
+@main_bp.route('/images/<filename>')
+def get_image(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

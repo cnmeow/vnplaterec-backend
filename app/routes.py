@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, flash, current_app as app, jsonify
+from flask import Blueprint, request, current_app as app, jsonify
 import os
 from PIL import Image
 import cv2

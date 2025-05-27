@@ -3,7 +3,6 @@ import os
 from PIL import Image
 import cv2
 import time
-from app.ml_models import yolo_LP_detect, yolo_license_plate
 from app import utils_rotate, helper
 
 main_bp = Blueprint('main', __name__)

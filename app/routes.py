@@ -4,6 +4,7 @@ from PIL import Image
 import cv2
 import time
 from app import utils_rotate, helper
+import json
 
 main_bp = Blueprint('main', __name__)
 
@@ -80,11 +81,14 @@ def predict():
                     break
     end_time = time.time()
     run_time = str(round(end_time - start_time, 2))
-
+    list_read_plates = json.dumps(list(list_read_plates))
+    list_read_plates = list_read_plates.replace('"', '')
+    list_read_plates = list_read_plates.replace('[', '')
+    list_read_plates = list_read_plates.replace(']', '')
     cv2.imwrite(image_path, img)
     return jsonify({
         "result_path": id_user + '.jpg',
-        "plate_text": lp,
+        "plate_text": list_read_plates,
         "run_time": run_time
     })
 

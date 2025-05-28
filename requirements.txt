@@ -1,3 +1,6 @@
+flask
+flask_cors
+pillow_heif
 opencv-python
 matplotlib
 numpy

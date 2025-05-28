@@ -14,6 +14,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
+RUN mkdir -p /app/images && chmod -R 777 /app/images
 COPY . .
 
 # Expose port

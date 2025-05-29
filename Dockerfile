@@ -1,24 +1,28 @@
-# Use official Python image
-FROM python:3.10-slim
+# Stage 1: Builder
+FROM python:3.10-slim AS builder
 
-# Set work directory
 WORKDIR /app
 
-# Install dependencies
 RUN apt-get update && apt-get install -y \
     libgl1 \
     libglib2.0-0 \
   && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
+
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
-RUN mkdir -p /app/images && chmod -R 777 /app/images
+# Stage 2: Final
+FROM python:3.10-slim
+
+WORKDIR /app
+
+COPY --from=builder /usr/local /usr/local
+
 COPY . .
 
-# Expose port
+RUN mkdir -p /app/images && chmod -R 755 /app/images
+
 EXPOSE 8081
 
-# Run the app
 CMD ["python", "app.py"]

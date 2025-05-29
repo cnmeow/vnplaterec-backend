@@ -18,7 +18,7 @@ RUN mkdir -p /app/images && chmod -R 777 /app/images
 COPY . .
 
 # Expose port
-EXPOSE 2106
+EXPOSE 8081
 
 # Run the app
 CMD ["python", "app.py"]

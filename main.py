@@ -45,9 +45,7 @@ def predict():
         return jsonify({
             "error": "Not found user id"
         })
-    
-    yolo_lp_detect = app.yolo_LP_detect
-    yolo_license_plate = app.yolo_license_plate
+    global yolo_LP_detect, yolo_license_plate
     id_user = request.form['id_user']
     filename = file.filename
     ext = filename.rsplit('.', 1)[1].lower()
@@ -61,7 +59,7 @@ def predict():
 
     img = cv2.imread(image_path)
     start_time = time.time()
-    plates = yolo_lp_detect(img, size=640)
+    plates = yolo_LP_detect(img, size=640)
     list_plates = plates.pandas().xyxy[0].values.tolist()
     list_read_plates = set()
     lp = "unknown"

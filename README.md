@@ -1,7 +1,6 @@
 # 🚗 Vietnam License Plate Recognition - Backend
 
-This is the backend of a License Plate Recognition (LPR) system, built with **Next.js** using **React** and **TypeScript**.  
-It provides a clean, user-friendly interface for uploading images or accessing a live camera stream to detect vehicle license plates in real-time.
+This backend service provides an API for detecting license plates from uploaded images or live camera feed. Built with Flask and powered by AI models like YOLO and Faster R-CNN.
 
 👉 **Frontend repository:** [github.com/cnmeow/vnplaterec-frontend](https://github.com/cnmeow/vnplaterec-frontend)
 

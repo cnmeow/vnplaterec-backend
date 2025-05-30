@@ -1,17 +1,29 @@
-from flask import Blueprint, request, current_app as app, jsonify, send_from_directory
+import torch
+from flask import Flask, request, current_app as app, jsonify, send_from_directory
+from flask_cors import CORS
 import os
 from PIL import Image
 import cv2
 import time
-from app import utils_rotate, helper
 import json
+from src import utils_rotate, helper
 
-main_bp = Blueprint('main', __name__)
+app = Flask(__name__)
+app.config.from_object('src.config.Config')
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+yolo_LP_detect = torch.hub.load('yolov5', 'custom', path=app.config['CHECKPOINT_FOLDER'] + '/LP_detector.pt', force_reload=True, source='local')
+yolo_license_plate = torch.hub.load('yolov5', 'custom', path=app.config['CHECKPOINT_FOLDER']+ '/LP_ocr.pt', force_reload=True, source='local')
+yolo_license_plate.conf = 0.60
+
+CORS(app)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-@main_bp.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['POST'])
 def predict():
     if 'image' not in request.files:
         return jsonify({
@@ -92,6 +104,6 @@ def predict():
         "run_time": run_time
     })
 
-@main_bp.route('/images/<filename>')
+@app.route('/images/<filename>')
 def get_image(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

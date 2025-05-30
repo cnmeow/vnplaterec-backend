@@ -25,4 +25,4 @@ RUN mkdir -p /app/images && chmod -R 755 /app/images
 
 EXPOSE 8081
 
-CMD ["python", "app.py"]
+CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:8081", "--log-level", "info"]

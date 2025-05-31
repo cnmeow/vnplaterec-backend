@@ -15,12 +15,18 @@ jobs:
   analysis:
     needs: tests
     uses: ./.github/workflows/source_analysis.yml
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       security-events: write
 
   dockertrivy:
     needs: analysis
     uses: ./.github/workflows/docker_trivy.yml
+    with:
+      DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+    secrets:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     permissions:
       security-events: write
       

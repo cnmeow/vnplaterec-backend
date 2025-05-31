@@ -2,6 +2,9 @@ name: Source Analysis and Security Checks
 
 on:
   workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
 
 jobs:
   analysis:
@@ -22,7 +25,7 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:python"
-  
+    
     - name: SonarQubeScan
       uses: SonarSource/sonarqube-scan-action@v4
       env: 
@@ -37,6 +40,7 @@ jobs:
     - name: "SonarQube Quality Gate Status"
       run: echo "The Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
     
+   
     - name: OWSAP Dependency Check
       uses: dependency-check/Dependency-Check_Action@main
       id: Depcheck

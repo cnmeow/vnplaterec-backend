@@ -10,8 +10,6 @@ from flask_wtf import CSRFProtect
 from PIL import Image
 
 app = Flask(__name__)
-csrf = CSRFProtect()
-csrf.init_app(app)
 models = {}
 
 DETECTION_URL = "/v1/object-detection/<model>"

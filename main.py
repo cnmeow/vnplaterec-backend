@@ -11,8 +11,6 @@ from src import helper, utils_rotate
 import datetime
 
 app = Flask(__name__)
-csrf = CSRFProtect()
-csrf.init_app(app)
 app.config.from_object('src.config.Config')
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):

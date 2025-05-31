@@ -32,14 +32,3 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
- 
-    - name: Slack Notification
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_CHANNEL: general
-        SLACK_COLOR: ${{ job.status }} 
-        SLACK_ICON: https://github.com/rtCamp.png?size=48
-        SLACK_MESSAGE: 'Test & Lint'
-        SLACK_TITLE: Test
-        SLACK_USERNAME: github
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

@@ -1,0 +1,57 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    uses: ./.github/workflows/test.yml
+
+  analysis:
+    needs: tests
+    uses: ./.github/workflows/source_analysis.yml
+
+  dockertrivy:
+    needs: analysis
+    uses: ./.github/workflows/docker_trivy.yml
+
+  notify:
+    name: Slack Notification
+    needs: [tests, analysis, dockertrivy]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Slack if Failure
+        if: contains(needs.*.result, 'failure')
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: general
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_COLOR: danger
+          SLACK_ICON: https://github.com/rtCamp.png?size=48
+          SLACK_USERNAME: vnplaterec-backend
+          SLACK_TITLE: ❌ CI Pipeline Failed
+          SLACK_MESSAGE: |
+            🚨 *Workflow failed!*  
+            • Repository: ${{ github.repository }}  
+            • Branch: ${{ github.ref }}  
+            • Commit: ${{ github.sha }}  
+            • Triggered by: ${{ github.actor }}  
+            • Job: ${{ github.job }}  
+            • Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Notify Slack if Success
+        if: ${{ !contains(needs.*.result, 'failure') }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: general
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_COLOR: good
+          SLACK_ICON: https://github.com/rtCamp.png?size=48
+          SLACK_USERNAME: vnplaterec-backend
+          SLACK_TITLE: ✅ CI Pipeline Success
+          SLACK_MESSAGE: "All jobs passed successfully!"

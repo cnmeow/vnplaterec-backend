@@ -1,12 +1,12 @@
-import torch
-from flask import Flask, request, current_app as app, jsonify, send_from_directory
+from flask import Flask, current_app as app, request, send_from_directory, jsonify
 from flask_cors import CORS
 import os
+import torch
 from PIL import Image
-import cv2
-import time
 import json
-from src import utils_rotate, helper
+import time
+import cv2
+from src import helper, utils_rotate
 
 app = Flask(__name__)
 app.config.from_object('src.config.Config')
@@ -14,8 +14,12 @@ app.config.from_object('src.config.Config')
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-yolo_LP_detect = torch.hub.load('yolov5', 'custom', path=app.config['CHECKPOINT_FOLDER'] + '/LP_detector.pt', force_reload=True, source='local')
-yolo_license_plate = torch.hub.load('yolov5', 'custom', path=app.config['CHECKPOINT_FOLDER']+ '/LP_ocr.pt', force_reload=True, source='local')
+yolo_LP_detect = torch.hub.load('yolov5', 'custom', 
+                                path=app.config['CHECKPOINT_FOLDER'] + '/LP_detector.pt', 
+                                force_reload=True, source='local')
+yolo_license_plate = torch.hub.load('yolov5', 'custom', 
+                                path=app.config['CHECKPOINT_FOLDER']+ '/LP_ocr.pt', 
+                                force_reload=True, source='local')
 yolo_license_plate.conf = 0.60
 
 CORS(app)
@@ -63,7 +67,7 @@ def predict():
     list_plates = plates.pandas().xyxy[0].values.tolist()
     list_read_plates = set()
     lp = "unknown"
-    
+
     if len(list_plates) == 0:
         lp = helper.read_plate(yolo_license_plate, img)
         if lp != "unknown":

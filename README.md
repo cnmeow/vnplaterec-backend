@@ -1,4 +1,4 @@
-# 🚗 Vietnam License Plate Recognition - Backend
+# 🚗 Vietnam License Plate Recognition - Backend 
 
 This backend service provides an API for detecting license plates from uploaded images or live camera feed. Built with Flask and powered by AI models like YOLO and Faster R-CNN.
 

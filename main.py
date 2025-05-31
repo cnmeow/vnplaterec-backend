@@ -1,4 +1,5 @@
 from flask import Flask, current_app as app, request, send_from_directory, jsonify
+from flask_wtf import CSRFProtect
 from flask_cors import CORS
 import os
 import torch
@@ -7,8 +8,11 @@ import json
 import time
 import cv2
 from src import helper, utils_rotate
+import datetime
 
 app = Flask(__name__)
+csrf = CSRFProtect()
+csrf.init_app(app)
 app.config.from_object('src.config.Config')
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -49,11 +53,22 @@ def predict():
         return jsonify({
             "error": "Not found user id"
         })
+    
+    try:
+        img = Image.open(file.stream)
+        img.verify()  
+    except Exception:
+        return jsonify({
+            "error": "File type not supported"
+        })
+    
     yolo_LP_detect, yolo_license_plate
     id_user = request.form['id_user']
     filename = file.filename
     ext = filename.rsplit('.', 1)[1].lower()
-    image_path = os.path.join(app.config['UPLOAD_FOLDER'], id_user + '.jpg')
+
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    image_path = os.path.join(app.config['UPLOAD_FOLDER'], id_user + timestamp + '.jpg')
 
     if ext in ['jpg', 'jpeg', 'png']:
         file.save(image_path)
@@ -101,7 +116,7 @@ def predict():
     list_read_plates = list_read_plates.replace(']', '')
     cv2.imwrite(image_path, img)
     return jsonify({
-        "result_path": id_user + '.jpg',
+        "result_path": image_path,
         "plate_text": list_read_plates,
         "run_time": run_time
     })

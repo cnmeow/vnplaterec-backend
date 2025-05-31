@@ -13,3 +13,5 @@ requests
 pandas
 seaborn
 gunicorn
+datetime
+flask_wtf

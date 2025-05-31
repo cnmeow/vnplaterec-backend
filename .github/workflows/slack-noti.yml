@@ -1,0 +1,26 @@
+name: CI Workflow with Slack Notification
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack on success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2
+        with:
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          message: ":white_check_mark: Build and deployment successful! Commit: ${{ github.sha }}"
+          status: success
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2
+        with:
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          message: ":x: Build or deployment failed! Commit: ${{ github.sha }}"
+          status: failure

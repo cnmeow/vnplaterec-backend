@@ -9,15 +9,21 @@ on:
 jobs:
   tests:
     uses: ./.github/workflows/test.yml
+    permissions:
+      security-events: write
 
   analysis:
     needs: tests
     uses: ./.github/workflows/source_analysis.yml
+    permissions:
+      security-events: write
 
   dockertrivy:
     needs: analysis
     uses: ./.github/workflows/docker_trivy.yml
-
+    permissions:
+      security-events: write
+      
   notify:
     name: Slack Notification
     needs: [tests, analysis, dockertrivy]

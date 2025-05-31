@@ -45,7 +45,7 @@ def predict():
         return jsonify({
             "error": "Not found user id"
         })
-    global yolo_LP_detect, yolo_license_plate
+    yolo_LP_detect, yolo_license_plate
     id_user = request.form['id_user']
     filename = file.filename
     ext = filename.rsplit('.', 1)[1].lower()

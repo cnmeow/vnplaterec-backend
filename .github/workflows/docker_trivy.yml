@@ -6,6 +6,9 @@ on:
       DOCKERHUB_USERNAME:
         required: true
         type: string
+      TIMESTAMP:
+        required: true
+        type: string
     secrets:
       DOCKERHUB_TOKEN:
         required: true
@@ -17,9 +20,6 @@ jobs:
       security-events: write
 
     steps:
-    - name: Set timestamp
-      run: echo "TIMESTAMP=$(date +%s)" >> $GITHUB_ENV
-
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
@@ -33,12 +33,12 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: '${{ vars.DOCKERHUB_USERNAME }}/vnplaterec-backend:${{ env.TIMESTAMP }}'
+        tags: '${{ vars.DOCKERHUB_USERNAME }}/vnplaterec-backend:${{ vars.TIMESTAMP }}'
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
       with:
-        image-ref: 'docker.io/${{ vars.DOCKERHUB_USERNAME }}/vnplaterec-backend:${{ env.TIMESTAMP }}'
+        image-ref: 'docker.io/${{ vars.DOCKERHUB_USERNAME }}/vnplaterec-backend:${{ vars.TIMESTAMP }}'
         format: 'template'
         template: '@/contrib/sarif.tpl'
         output: 'trivy-results.sarif'

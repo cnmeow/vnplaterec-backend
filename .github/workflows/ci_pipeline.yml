@@ -7,6 +7,14 @@ on:
     branches: [main]
 
 jobs:
+  set-timestamp:
+    runs-on: ubuntu-latest
+    outputs:
+      timestamp: ${{ steps.set-timestamp.outputs.timestamp }}
+    steps:
+      - id: set-timestamp
+        run: echo "::set-output name=timestamp::$(date +%s)"
+
   tests:
     uses: ./.github/workflows/test.yml
     permissions:
@@ -21,15 +29,44 @@ jobs:
       security-events: write
 
   dockertrivy:
-    needs: analysis
+    needs: [set-timestamp, analysis]
     uses: ./.github/workflows/docker_trivy.yml
     with:
       DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+      TIMESTAMP: ${{ needs.set-timestamp.outputs.timestamp }}
     secrets:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     permissions:
       security-events: write
-      
+
+  update-values:
+    name: "Update values in helm chart repo"
+    needs: [set-timestamp, dockertrivy]
+    runs-on: ubuntu-latest
+    if: ${{ !contains(needs.*.result, 'failure') }}
+
+    steps:
+      - name: Checkout Helm chart repo
+        uses: actions/checkout@v4
+        with:
+          repository: cnmeow/vnplaterec-helmchart
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: helm-chart
+
+      - name: Update values.yaml
+        run: |
+          cd helm-chart/charts/backend
+          yq e -i ".image.tag = \"${{ needs.set-timestamp.outputs.timestamp }}\"" values.yaml
+
+      - name: Commit and push
+        run: |
+          cd helm-chart
+          git config user.name "github-actions"
+          git config user.email "ci@github.com"
+          git add .
+          git commit -m "ci: update image tag to ${{ needs.set-timestamp.outputs.timestamp }}"
+          git push
+
   notify:
     name: Slack Notification
     needs: [tests, analysis, dockertrivy]

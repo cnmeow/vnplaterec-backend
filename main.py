@@ -52,21 +52,14 @@ def predict():
             "error": "Not found user id"
         })
     
-    try:
-        img = Image.open(file.stream)
-        img.verify()  
-    except Exception:
-        return jsonify({
-            "error": "File type not supported"
-        })
-    
     yolo_LP_detect, yolo_license_plate
     id_user = request.form['id_user']
     filename = file.filename
     ext = filename.rsplit('.', 1)[1].lower()
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    image_path = os.path.join(app.config['UPLOAD_FOLDER'], id_user + timestamp + '.jpg')
+    image_name = id_user + timestamp + '.jpg'
+    image_path = os.path.join('images/'+id_user + timestamp + '.jpg')
 
     if ext in ['jpg', 'jpeg', 'png']:
         file.save(image_path)
@@ -114,11 +107,11 @@ def predict():
     list_read_plates = list_read_plates.replace(']', '')
     cv2.imwrite(image_path, img)
     return jsonify({
-        "result_path": image_path,
+        "result_path": image_name,
         "plate_text": list_read_plates,
         "run_time": run_time
     })
 
 @app.route('/images/<filename>')
 def get_image(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    return send_from_directory('images' ,filename)

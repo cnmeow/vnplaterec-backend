@@ -6,7 +6,7 @@ This backend service provides an API for detecting license plates from uploaded 
 
 ## ✨ Features
 
-- Upload images to recognize license plates
+- Upload images to recognize license plates 
 
   <img width="600" alt="image" src="https://github.com/user-attachments/assets/2c7e742f-776d-4e83-ae53-7cb76fc37834" />
 - Real-time recognition from live camera feed

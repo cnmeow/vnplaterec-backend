@@ -55,7 +55,7 @@ jobs:
 
       - name: Update values.yaml
         run: |
-          cd helm-chart/charts/backend
+          cd helm-chart/services/backend/helm
           yq e -i ".image.tag = \"${{ needs.set-timestamp.outputs.timestamp }}\"" values.yaml
 
       - name: Commit and push

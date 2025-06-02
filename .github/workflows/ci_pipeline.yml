@@ -13,7 +13,7 @@ jobs:
       timestamp: ${{ steps.set-timestamp.outputs.timestamp }}
     steps:
       - id: set-timestamp
-        run: echo "::set-output name=timestamp::$(date +%s)"
+        run: echo "timestamp=$(date +%s)" >> $GITHUB_OUTPUT
 
   tests:
     uses: ./.github/workflows/test.yml

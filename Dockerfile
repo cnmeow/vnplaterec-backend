@@ -28,6 +28,6 @@ COPY . .
 
 RUN mkdir -p /app/images && chmod -R 755 /app/images
 
-EXPOSE 8081
+EXPOSE 8080
 
-CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:8081", "--log-level", "info"]
+CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:8080", "--log-level", "info"]

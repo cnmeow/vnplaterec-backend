@@ -69,7 +69,7 @@ jobs:
 
   notify:
     name: Slack Notification
-    needs: [tests, analysis, dockertrivy]
+    needs: [tests, analysis, dockertrivy, update-values]
     if: always()
     runs-on: ubuntu-latest
 

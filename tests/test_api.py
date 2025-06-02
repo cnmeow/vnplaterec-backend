@@ -10,7 +10,7 @@ from main import app
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
-    app.config['UPLOAD_FOLDER'] = 'tests/uploads'
+    app.config['UPLOAD_FOLDER'] = 'images'
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     yield app.test_client()
     

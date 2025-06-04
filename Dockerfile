@@ -30,4 +30,4 @@ RUN mkdir -p /app/images && chmod -R 755 /app/images
 
 EXPOSE 8080
 
-CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:8080", "--log-level", "info"]
+CMD ["uvicorn", "main:app", "--port", "8080"]

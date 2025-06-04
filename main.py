@@ -1,6 +1,3 @@
-from flask import Flask, current_app as app, request, send_from_directory, jsonify
-from flask_wtf import CSRFProtect
-from flask_cors import CORS
 import os
 import torch
 from PIL import Image
@@ -9,9 +6,15 @@ import time
 import cv2
 from src import helper, utils_rotate
 import datetime
+from fastapi import FastAPI, UploadFile, File, Form
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
-app = Flask(__name__)
-app.config.from_object('src.config.Config')
+app = FastAPI()
+app.config = {}
+app.config['UPLOAD_FOLDER'] = 'images'
+app.config['CHECKPOINT_FOLDER'] = 'checkpoints'
+app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png'}
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
@@ -23,49 +26,62 @@ yolo_license_plate = torch.hub.load('yolov5', 'custom',
                                 path=app.config['CHECKPOINT_FOLDER']+ '/LP_ocr.pt', 
                                 force_reload=True, source='local')
 yolo_license_plate.conf = 0.60
-
-CORS(app)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    if 'image' not in request.files:
-        return jsonify({
+@app.post("/predict")
+async def predict(
+    image: UploadFile = File(...),
+    id_user: str = Form(...)
+):
+    print("Received file:", image.filename)
+    print("User ID:", id_user)
+    if not image or image is None:
+        return JSONResponse(status_code=400, content={
+            "error": "No file part"
+        })
+    
+    if image.filename == '':
+        return JSONResponse(status_code=400, content={
             "error": "No file"
         })
     
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({
-            "error": "No selected file"
-        })
-    
-    if file and not allowed_file(file.filename):
-        return jsonify({
+    if image and not allowed_file(image.filename):
+        return JSONResponse(status_code=400, content={
             "error": "File type not supported"
         })
 
-    if 'id_user' not in request.form:
-        return jsonify({
-            "error": "Not found user id"
+    if not id_user or id_user.strip() == "":
+        return JSONResponse(status_code=400, content={
+            "error": "User ID is required"
+        })
+    image_bytes = await image.read()
+    if not image_bytes:
+        return JSONResponse(status_code=400, content={
+            "error": "Empty file"
         })
     
     yolo_LP_detect, yolo_license_plate
-    id_user = request.form['id_user']
-    filename = file.filename
+    filename = image.filename
     ext = filename.rsplit('.', 1)[1].lower()
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     image_name = id_user + timestamp + '.jpg'
     image_path = os.path.join('images/'+id_user + timestamp + '.jpg')
 
-    if ext in ['jpg', 'jpeg', 'png']:
-        file.save(image_path)
-    else: 
-        image = Image.open(file)
-        image.save(image_path, format='JPEG')
+    with open(image_path, 'wb') as f:
+        f.write(image_bytes)
+
+    img = Image.open(image_path)
+    img = img.convert('RGB')
+    img.save(image_path, 'JPEG')
 
     img = cv2.imread(image_path)
     start_time = time.time()
@@ -106,12 +122,20 @@ def predict():
     list_read_plates = list_read_plates.replace('[', '')
     list_read_plates = list_read_plates.replace(']', '')
     cv2.imwrite(image_path, img)
-    return jsonify({
+    return JSONResponse(status_code=200, content={
         "result_path": image_name,
         "plate_text": list_read_plates,
         "run_time": run_time
     })
 
-@app.route('/images/<filename>')
-def get_image(filename):
-    return send_from_directory('images' ,filename)
+@app.get('/images/{filename}')
+async def get_image(filename):
+    if not allowed_file(filename):
+        return JSONResponse(status_code=400, content={"error": "File type not supported"})
+    if not os.path.exists(os.path.join('images', filename)):
+        return JSONResponse(status_code=404, content={"error": "File not found"})
+    return FileResponse(os.path.join('images', filename), media_type='image/jpeg')
+
+@app.get('/health')
+async def health_check():
+    return JSONResponse(status_code=200, content={"status": "ok"})

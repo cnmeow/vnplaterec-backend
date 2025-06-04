@@ -1,6 +1,6 @@
 # 🚗 Vietnam License Plate Recognition - Backend 
 
-This backend service provides an API for detecting license plates from uploaded images or live camera feed. Built with Flask and powered by AI models like YOLO and Faster R-CNN.
+This backend service provides an API for detecting license plates from uploaded images or live camera feed. Built with FastAPI and powered by AI models like YOLO and Faster R-CNN.
   
 👉 **Frontend repository:** [github.com/cnmeow/vnplaterec-frontend](https://github.com/cnmeow/vnplaterec-frontend) 
 
@@ -23,7 +23,7 @@ cd vnplaterec-backend
 ```
 
 2. Run
-- Option A: Run with Python (Flask)
+- Option A: Run with Python (uvicorn)
   ```bash
   # Create virtual environment (optional)
   python -m venv venv
@@ -35,7 +35,7 @@ cd vnplaterec-backend
   pip install -r requirements.txt
   
   # Run the Flask server
-  gunicorn main:app --bind 0.0.0.0:8080
+  uvicorn main:app --port 8080 
   ```
 
 - Option B: Run with Docker
@@ -66,9 +66,10 @@ cd vnplaterec-frontend
     ```bash
     NEXT_PUBLIC_API_URL=http://localhost:8080 # Backend
     ```
-  - Start Development Server
+  - Start Server
     ```bash
-    npm run dev
+    npm run build
+    npm run start
     ```
 
 - Option B: Run with Docker

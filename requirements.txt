@@ -1,5 +1,3 @@
-flask
-flask_cors
 pillow_heif
 opencv-python
 matplotlib
@@ -12,6 +10,6 @@ pyyaml
 requests
 pandas
 seaborn
-gunicorn
+uvicorn
 datetime
-flask_wtf
+python-multipart

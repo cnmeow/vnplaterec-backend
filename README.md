@@ -35,7 +35,7 @@ cd vnplaterec-backend
   pip install -r requirements.txt
   
   # Run the Flask server
-  uvicorn main:app --port 8080 
+  uvicorn main:app --host 0.0.0.0 --port 8080 
   ```
 
 - Option B: Run with Docker

@@ -12,4 +12,7 @@ pandas
 seaborn
 uvicorn
 datetime
+pytest
+fastapi
 python-multipart
+httpx

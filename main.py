@@ -9,15 +9,15 @@ import datetime
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+import boto3
 
 app = FastAPI()
 app.config = {}
-app.config['UPLOAD_FOLDER'] = 'images'
 app.config['CHECKPOINT_FOLDER'] = 'checkpoints'
 app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png'}
 
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
+s3_client = boto3.client("s3", region_name="us-east-1")  
+BUCKET_NAME = "vnplaterec-bucket"
 
 yolo_LP_detect = torch.hub.load('yolov5', 'custom', 
                                 path=app.config['CHECKPOINT_FOLDER'] + '/LP_detector.pt', 
@@ -73,8 +73,7 @@ async def predict(
     ext = filename.rsplit('.', 1)[1].lower()
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    image_name = id_user + timestamp + '.jpg'
-    image_path = os.path.join('images/'+id_user + timestamp + '.jpg')
+    image_path = id_user + timestamp + '.jpg'
 
     with open(image_path, 'wb') as f:
         f.write(image_bytes)
@@ -122,19 +121,26 @@ async def predict(
     list_read_plates = list_read_plates.replace('[', '')
     list_read_plates = list_read_plates.replace(']', '')
     cv2.imwrite(image_path, img)
+
+    s3_client.upload_fileobj(
+        open(image_path, 'rb'),
+        BUCKET_NAME,
+        image_path,
+        ExtraArgs={'ContentType': 'image/jpeg'}
+    )
+
+    url = s3_client.generate_presigned_url(
+        ClientMethod="get_object",
+        Params={"Bucket": BUCKET_NAME, "Key": image_path},
+        ExpiresIn=3600
+    )
+
+    os.remove(image_path)
     return JSONResponse(status_code=200, content={
-        "result_path": image_name,
+        "result_path": url,
         "plate_text": list_read_plates,
         "run_time": run_time
     })
-
-@app.get('/images/{filename}')
-async def get_image(filename):
-    if not allowed_file(filename):
-        return JSONResponse(status_code=400, content={"error": "File type not supported"})
-    if not os.path.exists(os.path.join('images', filename)):
-        return JSONResponse(status_code=404, content={"error": "File not found"})
-    return FileResponse(os.path.join('images', filename), media_type='image/jpeg')
 
 @app.get('/health')
 async def health_check():

@@ -35,14 +35,3 @@ def test_predict_wrong_extension(client):
     response = client.post("/predict", files=files, data=data)
     assert response.status_code == 400 or response.status_code == 422
     assert "File type not supported" in response.json()["error"]
-
-def test_get_image_existing_file(client):
-    file_path = os.path.join(UPLOAD_FOLDER, 'dummy.jpg')
-    content = b'\xff\xd8\xff\xe0' + b'fake image content'
-    with open(file_path, 'wb') as f:
-        f.write(content)
-
-    response = client.get("/images/dummy.jpg")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/jpeg"
-    assert content in response.content

@@ -16,3 +16,4 @@ pytest
 fastapi
 python-multipart
 httpx
+boto3

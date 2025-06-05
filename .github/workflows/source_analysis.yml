@@ -15,7 +15,45 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Test with pytest
+      run: |
+        pytest --cov=. --cov-report=xml
+    
+    - name: SonarQubeScan
+      uses: SonarSource/sonarqube-scan-action@v4
+      env: 
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  
+    - name: SonarQube Quality Gate check
+      id: sonarqube-quality-gate-check
+      uses: sonarsource/sonarqube-quality-gate-action@master
+      with:
+        pollingTimeoutSec: 600
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+    - name: "SonarQube Quality Gate Status"
+      run: echo "The Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
+    
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
@@ -25,22 +63,7 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:python"
-    
-    - name: SonarQubeScan
-      uses: SonarSource/sonarqube-scan-action@v4
-      env: 
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    - name: SonarQube Quality Gate check
-      id: sonarqube-quality-gate-check
-      uses: sonarsource/sonarqube-quality-gate-action@master
-      with:
-        pollingTimeoutSec: 600
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    - name: "SonarQube Quality Gate Status"
-      run: echo "The Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
-    
-   
+
     - name: OWSAP Dependency Check
       uses: dependency-check/Dependency-Check_Action@main
       id: Depcheck

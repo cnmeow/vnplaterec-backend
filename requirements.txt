@@ -17,3 +17,4 @@ fastapi
 python-multipart
 httpx
 boto3
+pytest-cov

@@ -15,13 +15,7 @@ jobs:
       - id: set-timestamp
         run: echo "timestamp=$(date +%s)" >> $GITHUB_OUTPUT
 
-  tests:
-    uses: ./.github/workflows/test.yml
-    permissions:
-      security-events: write
-
   analysis:
-    needs: tests
     uses: ./.github/workflows/source_analysis.yml
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -69,7 +63,7 @@ jobs:
 
   notify:
     name: Slack Notification
-    needs: [tests, analysis, dockertrivy, update-values]
+    needs: [analysis, dockertrivy, update-values]
     if: always()
     runs-on: ubuntu-latest
 

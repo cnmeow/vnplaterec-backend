@@ -13,8 +13,12 @@ import boto3
 
 app = FastAPI()
 app.config = {}
+app.config['UPLOAD_FOLDER'] = 'images'
 app.config['CHECKPOINT_FOLDER'] = 'checkpoints'
 app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png'}
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 s3_client = boto3.client("s3", region_name="us-east-1")  
 BUCKET_NAME = "vnplaterec-bucket"
@@ -41,8 +45,6 @@ async def predict(
     image: UploadFile = File(...),
     id_user: str = Form(...)
 ):
-    print("Received file:", image.filename)
-    print("User ID:", id_user)
     if not image or image is None:
         return JSONResponse(status_code=400, content={
             "error": "No file part"
@@ -67,13 +69,12 @@ async def predict(
         return JSONResponse(status_code=400, content={
             "error": "Empty file"
         })
-    
-    yolo_LP_detect, yolo_license_plate
+
     filename = image.filename
     ext = filename.rsplit('.', 1)[1].lower()
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    image_path = id_user + timestamp + '.jpg'
+    image_path = app.config['UPLOAD_FOLDER'] + '/' + id_user + timestamp + '.jpg'
 
     with open(image_path, 'wb') as f:
         f.write(image_bytes)

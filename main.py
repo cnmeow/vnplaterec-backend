@@ -10,6 +10,7 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import boto3
+import numpy as np
 
 app = FastAPI()
 app.config = {}
@@ -20,7 +21,6 @@ app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png'}
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-s3_client = boto3.client("s3", region_name="us-east-1")  
 BUCKET_NAME = "vnplaterec-bucket"
 
 yolo_LP_detect = torch.hub.load('yolov5', 'custom', 
@@ -123,6 +123,14 @@ async def predict(
     list_read_plates = list_read_plates.replace(']', '')
     cv2.imwrite(image_path, img)
 
+    if id_user == "test":
+        return JSONResponse(status_code=200, content={
+            "result_path": image_path,
+            "plate_text": list_read_plates,
+            "run_time": run_time
+        })
+        
+    s3_client = boto3.client("s3", region_name="us-east-1")  
     s3_client.upload_fileobj(
         open(image_path, 'rb'),
         BUCKET_NAME,

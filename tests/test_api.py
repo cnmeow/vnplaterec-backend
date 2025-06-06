@@ -88,7 +88,7 @@ def test_predict_valid_file(client):
     files = {
         'image': ('test.jpg', io.BytesIO(img_bytes), 'image/jpeg')
     }
-    response = client.post("/predict", files=files, data={'id_user': '123'})
+    response = client.post("/predict", files=files, data={'id_user': 'test'})
     assert response.status_code == 200
     assert 'result_path' in response.json() 
     assert 'plate_text' in response.json()

@@ -1,7 +1,9 @@
 # 🚗 Vietnam License Plate Recognition - Backend 
 
 This backend service provides an API for detecting license plates from uploaded images or live camera feed. Built with FastAPI and powered by AI models like YOLO and Faster R-CNN.
-  
+
+👉 **Helmchart repository:** [github.com/cnmeow/vnplaterec-helmchart](https://github.com/cnmeow/vnplaterec-helmchart)
+
 👉 **Frontend repository:** [github.com/cnmeow/vnplaterec-frontend](https://github.com/cnmeow/vnplaterec-frontend) 
 
 ## ✨ Features
